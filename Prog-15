@@ -1,0 +1,13 @@
+import numpy as np
+from sklearn.datasets import load_iris
+from sklearn.naive_bayes import GaussianNB
+from sklearn.metrics import accuracy_score
+X, y = load_iris(return_X_y=True)
+
+np.random.seed(42)
+y[np.random.rand(len(y)) < 0.1] = np.random.randint(0, 3)
+model = GaussianNB()
+model.fit(X, y)
+pred = model.predict(X)
+
+print("Accuracy:", accuracy_score(y, pred))
