@@ -1,0 +1,13 @@
+from sklearn.naive_bayes import GaussianNB
+
+X = [[25,50000,1],
+     [35,80000,2],
+     [45,120000,3],
+     [30,60000,1],
+     [40,100000,2]]
+y = [0,1,1,0,1]
+
+model = GaussianNB()
+model.fit(X, y)
+
+print("Prediction:", model.predict([[32,70000,2]])[0])
