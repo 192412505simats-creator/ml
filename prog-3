@@ -1,91 +1,33 @@
-from math import log2
-class Node:
-    def __init__(self, attribute=None, value=None, results=None,
-                 true_branch=None, false_branch=None):
-        self.attribute = attribute
-        self.value = value
-        self.results = results
-        self.true_branch = true_branch
-        self.false_branch = false_branch
+def entropy(data):
+    labels = [row[-1] for row in data]
+    return -sum((labels.count(c)/len(labels)) * log2(labels.count(c)/len(labels))
+                for c in set(labels))
+def info_gain(data, col):
+    total = entropy(data)
+    vals = set(row[col] for row in data)
+    return total - sum(
+        (len([r for r in data if r[col]==v])/len(data)) *
+        entropy([r for r in data if r[col]==v])
+        for v in vals
+    )
 
-def class_counts(rows):
-    counts = {}
-    for row in rows:
-        label = row[-1]
-        counts[label] = counts.get(label, 0) + 1
-    return counts
-
-def entropy(rows):
-    counts = class_counts(rows)
-    total = len(rows)
-    return -sum((count / total) * log2(count / total) for count in counts.values())
-
-def information_gain(rows, col):
-    total_entropy = entropy(rows)
-    values = set(row[col] for row in rows)
-
-    weighted_entropy = 0
-    for val in values:
-        subset = [row for row in rows if row[col] == val]
-        weighted_entropy += (len(subset) / len(rows)) * entropy(subset)
-
-    return total_entropy - weighted_entropy
-
-def build_tree(rows):
-    if not rows:
-        return None
-
-    labels = [row[-1] for row in rows]
+def build_tree(data):
+    labels = [row[-1] for row in data]
     if len(set(labels)) == 1:
-        return Node(results=labels[0])
+        return labels[0]
 
-    num_attributes = len(rows[0]) - 1
+    best = max(range(len(data[0])-1), key=lambda c: info_gain(data, c))
+    tree = {}
+    for v in set(row[best] for row in data):
+        subset = [r for r in data if r[best]==v]
+        tree[v] = build_tree(subset)
+    return tree
 
-    best_attribute = max(
-        range(num_attributes),
-        key=lambda col: information_gain(rows, col)
-    )
-
-    best_value = rows[0][best_attribute]
-
-    true_rows = [row for row in rows if row[best_attribute] == best_value]
-    false_rows = [row for row in rows if row[best_attribute] != best_value]
-
-    true_branch = build_tree(true_rows)
-    false_branch = build_tree(false_rows)
-
-    return Node(
-        attribute=best_attribute,
-        value=best_value,
-        true_branch=true_branch,
-        false_branch=false_branch
-    )
-
-def print_tree(node, indent=""):
-    if node.results is not None:
-        print(indent + "Result:", node.results)
-        return
-
-    print(indent + f"Attribute {node.attribute} == {node.value}?")
-    print(indent + "--> True:")
-    print_tree(node.true_branch, indent + "  ")
-    print(indent + "--> False:")
-    print_tree(node.false_branch, indent + "  ")
-
-dataset = [
-    ['Sunny', 'Hot', 'High', 'Weak', 'No'],
-    ['Sunny', 'Hot', 'High', 'Strong', 'No'],
-    ['Overcast', 'Hot', 'High', 'Weak', 'Yes'],
-    ['Rain', 'Mild', 'High', 'Weak', 'Yes'],
-    ['Rain', 'Cool', 'Normal', 'Weak', 'Yes'],
-    ['Rain', 'Cool', 'Normal', 'Strong', 'No'],
-    ['Overcast', 'Cool', 'Normal', 'Strong', 'Yes'],
-    ['Sunny', 'Mild', 'High', 'Weak', 'No'],
-    ['Sunny', 'Cool', 'Normal', 'Weak', 'Yes'],
-    ['Rain', 'Mild', 'Normal', 'Weak', 'Yes']
+data = [
+ ['Sunny','Hot','High','Weak','No'],
+ ['Sunny','Hot','High','Strong','No'],
+ ['Overcast','Hot','High','Weak','Yes'],
+ ['Rain','Mild','High','Weak','Yes'],
+ ['Rain','Cool','Normal','Weak','Yes']
 ]
-
-tree = build_tree(dataset)
-
-print("Decision Tree:")
-print_tree(tree)
+print("Decision Tree:", build_tree(data))
