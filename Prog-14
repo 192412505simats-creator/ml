@@ -1,0 +1,12 @@
+import numpy as np
+from sklearn.linear_model import LinearRegression
+X = np.array([[1500,3,20],
+              [2000,4,15],
+              [1200,2,25]])
+y = np.array([200000,300000,150000])
+model = LinearRegression()
+model.fit(X, y)
+new_house = np.array([[1800,3,18]])
+price = model.predict(new_house)
+
+print("Predicted House Price:", price[0])
