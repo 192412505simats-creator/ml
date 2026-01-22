@@ -1,60 +1,33 @@
+def candidate_elimination(data):
+    S = data[0][:-1]
+    G = [['?' for _ in S]]
+    for row in data:
+        x, y = row[:-1], row[-1]
 
-def initialize_hypotheses(n):
-    S = ['0'] * n
-    G = [['?'] * n]
-    return S, G
-def candidate_elimination(training_data):
-    num_attributes = len(training_data[0]) - 1
-    S, G = initialize_hypotheses(num_attributes)
-
-    for example in training_data:
-        x = example[:-1]
-        label = example[-1]
-
-        if label == 'Yes':
-            for i in range(num_attributes):
-                if S[i] == '0':
-                    S[i] = x[i]
-                elif S[i] != x[i]:
+        if y == 'Yes':
+            for i in range(len(S)):
+                if S[i] != x[i]:
                     S[i] = '?'
-
-            G = [g for g in G if is_consistent(g, x)]
-
+            G = [g for g in G if all(g[i]=='?' or g[i]==x[i] for i in range(len(x)))]
         else:
             new_G = []
             for g in G:
-                if is_consistent(g, x):
-                    for i in range(num_attributes):
-                        if g[i] == '?':
-                            if S[i] != '?' and S[i] != '0':
-                                new_hypothesis = g.copy()
-                                new_hypothesis[i] = S[i]
-                                new_G.append(new_hypothesis)
-                else:
-                    new_G.append(g)
+                for i in range(len(x)):
+                    if g[i] == '?' and S[i] != '?':
+                        h = g.copy()
+                        h[i] = S[i]
+                        new_G.append(h)
             G = new_G
 
     return S, G
 
-def is_consistent(hypothesis, example):
-    for h, e in zip(hypothesis, example):
-        if h != '?' and h != e:
-            return False
-    return True
-
-training_data = [
-    ['Sunny', 'Warm', 'Normal', 'Strong', 'Warm', 'Same', 'Yes'],
-    ['Sunny', 'Warm', 'High', 'Strong', 'Warm', 'Same', 'Yes'],
-    ['Rainy', 'Cold', 'High', 'Weak', 'Cool', 'Change', 'No'],
-    ['Sunny', 'Warm', 'High', 'Strong', 'Cool', 'Change', 'Yes']
+# Training data
+data = [
+    ['Sunny','Warm','Normal','Strong','Warm','Same','Yes'],
+    ['Sunny','Warm','High','Strong','Warm','Same','Yes'],
+    ['Rainy','Cold','High','Weak','Cool','Change','No'],
+    ['Sunny','Warm','High','Strong','Cool','Change','Yes']
 ]
-
-S, G = candidate_elimination(training_data)
-
-print("Final Specific Hypothesis (S):")
-print(S)
-
-print("\nFinal General Hypotheses (G):")
-for g in G:
-    print(g)
-
+S, G = candidate_elimination(data)
+print("S:", S)
+print("G:", G)
